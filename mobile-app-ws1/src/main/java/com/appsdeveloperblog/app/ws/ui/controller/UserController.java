@@ -11,9 +11,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.appsdeveloperblog.app.ws.exception.UserServiceException;
 import com.appsdeveloperblog.app.ws.service.UserService;
 import com.appsdeveloperblog.app.ws.shared.dto.UserDto;
 import com.appsdeveloperblog.app.ws.ui.model.requestUserDetailsRequestModel.UserDetailsRequestModel;
+import com.appsdeveloperblog.app.ws.ui.model.response.ErrorMessages;
 import com.appsdeveloperblog.app.ws.ui.model.response.UserRest;
 
 @RestController // enables the class to recieve http requests
@@ -33,8 +35,9 @@ public class UserController {
 	}
 
 	@PostMapping // binding this method to recieve post method
-	public UserRest createUser(@RequestBody UserDetailsRequestModel userDetails) {
-
+	public UserRest createUser(@RequestBody UserDetailsRequestModel userDetails) throws Exception {
+		if (userDetails.getFirstName().isEmpty())
+			throw new UserServiceException(ErrorMessages.MISSING_REQUIRED_FIELD.getErrorMessage());
 		UserRest returnValue = new UserRest();
 		UserDto userDto = new UserDto();
 		BeanUtils.copyProperties(userDetails, userDto);
@@ -45,14 +48,22 @@ public class UserController {
 		return returnValue;
 	}
 
-	@PutMapping // binding this method to recieve post method
-	public String updateUser() {
-		return "updateUser was called";
+	@PutMapping(path = "/{id}") // binding this method to recieve post method
+	public UserRest updateUser(@PathVariable String id, @RequestBody UserDetailsRequestModel userDetails) {
+		UserRest returnValue = new UserRest();
+
+		UserDto userDto = new UserDto();
+		BeanUtils.copyProperties(userDetails, userDto);
+
+		UserDto updatedUser = userService.updateUser(id, userDto);
+		BeanUtils.copyProperties(updatedUser, returnValue);
+		return returnValue;
 	}
 
-	@DeleteMapping // binding this method to delete post method
-	public String deleteUser() {
-		return "deleteUser was called";
+	@DeleteMapping(path = "/{id}") // binding this method to delete post method
+	public String deleteUser(@PathVariable String id) {
+		userService.deleteUserById(id);
+		return "deleted user with userId:  " + id;
 	}
 
 }
