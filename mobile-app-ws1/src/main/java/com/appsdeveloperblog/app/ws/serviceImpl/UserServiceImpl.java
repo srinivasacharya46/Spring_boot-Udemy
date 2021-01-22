@@ -1,9 +1,14 @@
 package com.appsdeveloperblog.app.ws.serviceImpl;
 
 import java.util.ArrayList;
+import java.util.List;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -14,6 +19,8 @@ import com.appsdeveloperblog.app.ws.exception.UserServiceException;
 import com.appsdeveloperblog.app.ws.io.entity.UserEntity;
 import com.appsdeveloperblog.app.ws.io.repository.UserRepository;
 import com.appsdeveloperblog.app.ws.service.UserService;
+import com.appsdeveloperblog.app.ws.shared.Utills;
+import com.appsdeveloperblog.app.ws.shared.dto.AddressDto;
 import com.appsdeveloperblog.app.ws.shared.dto.UserDto;
 import com.appsdeveloperblog.app.ws.ui.model.response.ErrorMessages;
 
@@ -21,7 +28,8 @@ import com.appsdeveloperblog.app.ws.ui.model.response.ErrorMessages;
 public class UserServiceImpl implements UserService {
 	@Autowired
 	private UserRepository userRepository;
-
+	@Autowired
+	private Utills utills;
 	@Autowired
 	BCryptPasswordEncoder b;
 
@@ -30,21 +38,28 @@ public class UserServiceImpl implements UserService {
 		if (userRepository.findByEmail(user.getEmail()) != null)
 			throw new RuntimeException("Sorry this email id already exists");
 
-		UserEntity userEntity = new UserEntity();
-		BeanUtils.copyProperties(user, userEntity);
+		// BeanUtils.copyProperties(user, userEntity);
 		// storing the password being provided by user in encrypted format-dont store it
 		// as a plain text(Security)
 
-		userEntity.setEncryptedPassword(b.encode(user.getPassword()));
+		for (int i = 0; i < user.getAddresses().size(); i++) {
+			AddressDto address = user.getAddresses().get(i);
+			address.setUserDetails(user);
+			address.setAddressId(utills.generateAddressId(5));
+			user.getAddresses().set(i, address);
+		}
 
-		userEntity.setUserId("testgopal");
+		ModelMapper modelMapper = new ModelMapper();
+		UserEntity userEntity = modelMapper.map(user, UserEntity.class);
+
+		userEntity.setEncryptedPassword(b.encode(user.getPassword()));
+		String puid = utills.generatedUserId(5);
+		userEntity.setUserId(puid);
 
 		UserEntity storedUserdetails = userRepository.save(userEntity);
 
-		UserDto returnValue = new UserDto();
-
-		BeanUtils.copyProperties(storedUserdetails, returnValue);
-
+		// BeanUtils.copyProperties(storedUserdetails, returnValue);
+		UserDto returnValue = modelMapper.map(storedUserdetails, UserDto.class);
 		return returnValue;
 	}
 
@@ -105,6 +120,20 @@ public class UserServiceImpl implements UserService {
 			throw new UserServiceException(ErrorMessages.NO_RECORD_FOUND.getErrorMessage());
 		userRepository.delete(userEntity);
 
+	}
+
+	@Override
+	public List<UserDto> getAllUsers(int page, int limit) {
+		List<UserDto> returnValue = new ArrayList<>();
+		Pageable pageable = PageRequest.of(page, limit);
+		Page<UserEntity> usersPage = userRepository.findAll(pageable);
+		List<UserEntity> users = usersPage.getContent();
+		for (UserEntity userEntity : users) {
+			UserDto userDto = new UserDto();
+			BeanUtils.copyProperties(userEntity, returnValue);
+			returnValue.add(userDto);
+		}
+		return returnValue;
 	}
 
 }

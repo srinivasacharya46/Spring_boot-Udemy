@@ -1,11 +1,14 @@
 package com.appsdeveloperblog.app.ws.ui.model.requestUserDetailsRequestModel;
 
+import java.util.List;
+
 //requesting details from user convert json to java obbjects
 public class UserDetailsRequestModel {
 	private String firstName;
 	private String lastName;
 	private String email;
 	private String password;
+	List<AddressRequestModel> addresses;
 
 	public String getFirstName() {
 		return firstName;
@@ -37,6 +40,14 @@ public class UserDetailsRequestModel {
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public List<AddressRequestModel> getAddresses() {
+		return addresses;
+	}
+
+	public void setAddresses(List<AddressRequestModel> addresses) {
+		this.addresses = addresses;
 	}
 
 }

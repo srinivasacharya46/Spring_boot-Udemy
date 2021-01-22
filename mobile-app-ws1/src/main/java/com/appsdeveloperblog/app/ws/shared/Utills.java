@@ -16,6 +16,10 @@ public class Utills {
 		return generatedRandomString(length);
 	}
 
+	public String generateAddressId(int length) {
+		return generatedRandomString(length);
+	}
+
 	private String generatedRandomString(int length) {
 		StringBuilder returnValue = new StringBuilder(length);
 
