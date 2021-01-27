@@ -14,7 +14,8 @@ import com.appsdeveloperblog.app.ws.io.entity.UserEntity;
 public interface AddressRepository extends CrudRepository<AddressEntity, Long> {
 	List<AddressEntity> findAllByUserDetails(UserEntity userEntity);
 
-	@Query(value = "select * from Address a where a.id=:id", nativeQuery = true)
+//changes done and to be tested
+	@Query(value = "select * from addresses  where id=:id", nativeQuery = true)
 	AddressEntity findAddressByAddressId(@Param("id") String id);
 
 }
