@@ -136,4 +136,20 @@ public class UserServiceImpl implements UserService {
 		return returnValue;
 	}
 
+	@Override
+	public UserDto findAllUsersByFirstName(String id) {
+		UserDto userDto = new UserDto();
+		UserEntity userEntity = userRepository.findAllUsersByFirstName(id);
+		BeanUtils.copyProperties(userEntity, userDto);
+		return userDto;
+	}
+
+	@Override
+	public UserDto findUserDetailsByFirstAndLastName(String first_name, String last_name) {
+		UserDto returnValue = new UserDto();
+		UserEntity userEntity = userRepository.findUserDetailsByFirstAndLastName(first_name, last_name);
+		BeanUtils.copyProperties(userEntity, returnValue);
+		return returnValue;
+	}
+
 }

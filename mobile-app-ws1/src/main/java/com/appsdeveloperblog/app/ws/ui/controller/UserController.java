@@ -6,6 +6,7 @@ import java.util.List;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,9 +18,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.appsdeveloperblog.app.ws.exception.UserServiceException;
+import com.appsdeveloperblog.app.ws.service.AddressService;
 import com.appsdeveloperblog.app.ws.service.UserService;
+import com.appsdeveloperblog.app.ws.shared.dto.AddressDto;
 import com.appsdeveloperblog.app.ws.shared.dto.UserDto;
 import com.appsdeveloperblog.app.ws.ui.model.requestUserDetailsRequestModel.UserDetailsRequestModel;
+import com.appsdeveloperblog.app.ws.ui.model.response.AddressesRest;
 import com.appsdeveloperblog.app.ws.ui.model.response.ErrorMessages;
 import com.appsdeveloperblog.app.ws.ui.model.response.UserRest;
 
@@ -30,6 +34,9 @@ public class UserController {
 	@Autowired
 	private UserService userService;
 
+	@Autowired
+	AddressService as;
+
 	@GetMapping(path = "/{id}") // binding this method to recieve get method
 	public UserRest getUser(@PathVariable String id) {
 		UserRest returnValue = new UserRest();
@@ -39,7 +46,8 @@ public class UserController {
 		return returnValue;
 	}
 
-	@PostMapping // binding this method to recieve post method
+	@PostMapping(consumes = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE }, produces = {
+			MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE })
 	public UserRest createUser(@RequestBody UserDetailsRequestModel userDetails) throws Exception {
 		if (userDetails.getFirstName().isEmpty())
 			throw new UserServiceException(ErrorMessages.MISSING_REQUIRED_FIELD.getErrorMessage());
@@ -88,4 +96,38 @@ public class UserController {
 
 		return returnValue;
 	}
+
+	@GetMapping(path = "/{id}/address") // binding this method to recieve get method
+	public List<AddressesRest> getAddress(@PathVariable String userId) {
+		List<AddressesRest> returnValue = new ArrayList<>();
+		// AddressDto addressDto = as.findAllByUserDetails(userId);
+		return returnValue;
+	}
+
+	@GetMapping(path = "/{id}/getBy")
+	public UserRest getUserDetailsByFirstName(@PathVariable String id) {
+		UserRest returnValue = new UserRest();
+		UserDto userDto = userService.findAllUsersByFirstName(id);
+		BeanUtils.copyProperties(userDto, returnValue);
+		return returnValue;
+	}
+
+	@GetMapping(path = "/{first_name}/{last_name}")
+	public UserRest getUserDetailsByFirstNameAndLastName(@PathVariable String first_name,
+			@PathVariable String last_name) {
+		UserRest returnValue = new UserRest();
+		UserDto userDto = userService.findUserDetailsByFirstAndLastName(first_name, last_name);
+		BeanUtils.copyProperties(userDto, returnValue);
+		return returnValue;
+	}
+
+	@GetMapping(path = "/{id}/getAddress")
+	public AddressesRest findAddressByAddressId(@PathVariable String id) {
+		AddressesRest a = new AddressesRest();
+		AddressDto addressDto = as.findAddressByAddressId(id);
+		BeanUtils.copyProperties(addressDto, a);
+		return a;
+
+	}
+
 }
