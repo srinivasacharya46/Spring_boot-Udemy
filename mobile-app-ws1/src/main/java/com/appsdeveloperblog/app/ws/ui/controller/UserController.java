@@ -6,6 +6,8 @@ import java.util.List;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -108,7 +110,9 @@ public class UserController {
 	public UserRest getUserDetailsByFirstName(@PathVariable String id) {
 		UserRest returnValue = new UserRest();
 		UserDto userDto = userService.findAllUsersByFirstName(id);
+
 		BeanUtils.copyProperties(userDto, returnValue);
+
 		return returnValue;
 	}
 
@@ -126,6 +130,12 @@ public class UserController {
 		AddressesRest a = new AddressesRest();
 		AddressDto addressDto = as.findAddressByAddressId(id);
 		BeanUtils.copyProperties(addressDto, a);
+		// adding link to response
+		Link userLink = WebMvcLinkBuilder.linkTo(UserController.class).slash(id).withRel("User");
+		a.add(userLink);
+		// or make use of EnitityModel----no need to extend representationModel
+		// class(returning)
+		// EntityModel.of(returnValue,Array.asList(links));
 		return a;
 
 	}
